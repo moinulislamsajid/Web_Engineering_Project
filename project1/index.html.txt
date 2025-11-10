@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Online Payment System (OTP fixed + back enabled)</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding-top: 50px
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      width: 360px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, .2)
+    }
+
+    h2 {
+      text-align: center;
+      color: #333
+    }
+
+    h3 {
+      color: #555
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box
+    }
+
+    button {
+      background: #28a745;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: .3s
+    }
+
+    button:hover {
+      background: #218838
+    }
+
+    .back-btn {
+      background: #dc3545;
+      margin-top: 5px
+    }
+
+    .back-btn:hover {
+      background: #c82333
+    }
+
+    .step {
+      display: none
+    }
+
+    .active {
+      display: block
+    }
+
+    #status {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold
+    }
+
+    #otpMessage {
+      color: blue;
+      font-weight: bold
+    }
+
+    .small {
+      font-size: 13px;
+      color: #666;
+      margin-top: -6px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Welcome to Online Payment System</h2>
+
+    <!-- Step1 -->
+    <div id="step1" class="step active">
+      <button onclick="nextStep(2)">Pay Now</button>
+    </div>
+
+    <!-- Step2: Payment Method -->
+    <div id="step2" class="step">
+      <h3>Select Payment Method</h3>
+      <select id="method">
+        <option value="bkash">Bkash</option>
+        <option value="nogod">Nagad</option>
+      </select>
+      <button onclick="nextStep(3)">Next</button>
+      <button class="back-btn" onclick="prevStep(1)">Back</button>
+    </div>
+
+    <!-- Step3: Phone -->
+    <div id="step3" class="step">
+      <h3>Enter Phone Number</h3>
+      <div style="display:flex;gap:5px">
+        <select id="countryCode" style="width:120px">
+          <option value="+880">BD +880</option>
+        </select>
+        <input id="phone" type="text" placeholder="Local number (e.g. 17xxxxxxxx)" style="flex:1"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="small">Enter local part only (10 digits for Bangladesh)</div>
+      <button onclick="checkPhone()">Next</button>
+      <button class="back-btn" onclick="prevStep(2)">Back</button>
+    </div>
+
+    <!-- Step4: Amount -->
+    <div id="step4" class="step">
+      <h3>Enter Amount</h3>
+      <input id="amount" type="number" placeholder="Amount" min="1">
+      <button onclick="showOTPStep()">Next</button>
+      <button class="back-btn" onclick="prevStep(3)">Back</button>
+    </div>
+
+    <!-- Step5: OTP -->
+    <div id="step5" class="step">
+      <h3>Enter Verification Code (OTP)</h3>
+      <p id="otpMessage"></p>
+      <input id="otp" type="text" placeholder="Enter OTP" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button onclick="checkOTP()">Next</button>
+      <button class="back-btn" onclick="prevStep(4)">Back</button>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button style="width:65%" onclick="resendOTP()">Resend OTP</button>
+        <div id="timer"
+          style="width:35%;text-align:center;padding:10px;border:1px solid #ccc;border-radius:5px;background:#fafafa">
+          --:--</div>
+      </div>
+    </div>
+
+    <!-- Step6: PIN -->
+    <div id="step6" class="step">
+      <h3>Enter PIN</h3>
+      <input id="pin" type="password" placeholder="0000">
+      <button onclick="processPayment()">Pay</button>
+      <button class="back-btn" onclick="prevStep(5)">Back</button>
+    </div>
+
+    <!-- Step7: Success -->
+    <div id="step7" class="step">
+      <h3>Payment Status</h3>
+      <div id="status"></div>
+      <button class="back-btn" onclick="prevStep(1)">Back to Pay</button>
+    </div>
+  </div>
+
+  <script>
+    // globals
+    let generatedOTP = null;
+    let otpExpiryTimeout = null;
+    let otpExpiryAt = null;
+    let otpTimerInterval = null;
+
+    // step navigation
+    function nextStep(step) { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById('step' + step).classList.add('active'); }
+    function prevStep(step) { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById('step' + step).classList.add('active'); }
+
+    // phone validation
+    function checkPhone() {
+      const phone = document.getElementById('phone').value.trim();
+      const code = document.getElementById('countryCode').value;
+      if (!/^[0-9]+$/.test(phone) || phone.length !== 10) { alert('Phone must be exactly 10 digits'); return; }
+      window.fullPhone = code + phone;
+      nextStep(4);
+    }
+
+    // OTP flow
+    function showOTPStep() {
+      const amount = document.getElementById('amount').value.trim();
+      if (amount === '' || Number(amount) <= 0) { alert('Enter valid amount'); return; }
+      generateAndShowOTP();
+      nextStep(5);
+    }
+
+    function generateAndShowOTP() {
+      clearOTPTimers();
+      generatedOTP = Math.floor(1000 + Math.random() * 9000);
+      console.log('Generated OTP:', generatedOTP); // dev
+      document.getElementById('otpMessage').innerText = `Your OTP is: ${generatedOTP} (simulated SMS)`;
+      const ttl = 120; // 2min
+      otpExpiryAt = Date.now() + ttl * 1000;
+      startOTPTimer();
+      otpExpiryTimeout = setTimeout(() => { generatedOTP = null; document.getElementById('otpMessage').innerText = 'OTP expired. Please resend.'; stopOTPTimer(); }, ttl * 1000);
+    }
+
+    function resendOTP() { generateAndShowOTP(); document.getElementById('otp').value = ''; }
+    function clearOTPTimers() { if (otpExpiryTimeout) clearTimeout(otpExpiryTimeout); if (otpTimerInterval) clearInterval(otpTimerInterval); document.getElementById('timer').innerText = '--:--'; }
+    function startOTPTimer() { if (otpTimerInterval) clearInterval(otpTimerInterval); otpTimerInterval = setInterval(() => { const leftMs = otpExpiryAt - Date.now(); if (leftMs <= 0) { document.getElementById('timer').innerText = '00:00'; clearInterval(otpTimerInterval); return; } const s = Math.floor(leftMs / 1000); const mm = String(Math.floor(s / 60)).padStart(2, '0'); const ss = String(s % 60).padStart(2, '0'); document.getElementById('timer').innerText = `${mm}:${ss}`; }, 500); }
+    function stopOTPTimer() { if (otpTimerInterval) clearInterval(otpTimerInterval); document.getElementById('timer').innerText = '--:--'; }
+
+    // check OTP
+    function checkOTP() {
+      const otp = document.getElementById('otp').value.trim();
+      if (otp === '' || !/^[0-9]+$/.test(otp)) { alert('OTP required'); return; }
+      if (!generatedOTP) { alert('No valid OTP found or expired'); return; }
+      if (otp !== generatedOTP.toString()) { alert('Invalid OTP'); return; }
+      generatedOTP = null;
+      clearOTPTimers();
+      nextStep(6);
+    }
+
+    // process payment
+    async function processPayment() {
+      const amount = document.getElementById('amount').value.trim();
+      const otpInput = document.getElementById('otp').value.trim(); // <--- user input
+      const pin = document.getElementById('pin').value.trim();
+
+      if (!window.fullPhone) { alert('Phone missing'); nextStep(3); return; }
+      if (amount === '' || Number(amount) <= 0) { alert('Amount missing'); nextStep(4); return; }
+      if (otpInput === '') { alert('Enter OTP'); return; }
+      if (pin === '') { alert('Enter PIN'); return; }
+
+      const payload = {
+        transactionId: 'TXN' + Date.now(),
+        method: document.getElementById('method').value,
+        phone: window.fullPhone,
+        amount,
+        otp: otpInput,
+        pin
+      };
+
+      try {
+        const res = await fetch('http://localhost:5000/payment-callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const resultText = await res.text();
+        document.getElementById('status').innerHTML = `<h3>${resultText}</h3>`;
+        // show success step
+        nextStep(7);
+      } catch (err) { alert('Backend not running!'); console.error(err); }
+    }
+
+    window.addEventListener('beforeunload', () => { clearOTPTimers(); });
+  </script>
+</body>
+
+</html>

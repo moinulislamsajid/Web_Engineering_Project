@@ -1,0 +1,35 @@
+// server.js
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+app.post('/payment-callback', (req, res) => {
+  const { transactionId, method, phone, amount, otp, pin } = req.body;
+  console.log('✅ Received Payment Data:', req.body);
+
+  if(!transactionId || !method || !phone || !amount || !pin){
+    return res.status(400).send('❌ Invalid Request. Missing fields.');
+  }
+
+  // Simulated PIN check
+  if(pin === '1010'){
+    return res.send(
+      `✅ Payment Successful!<br>
+       Transaction ID: ${transactionId}<br>
+       Method: ${method}<br>
+       Phone: ${phone}<br>
+       Amount: ${amount} BDT`
+       
+    );
+  } else {
+    return res.send('❌ Payment Failed! Incorrect PIN.');
+  }
+});
+
+app.get('/', (req, res) => res.send('Server running! Use POST /payment-callback'));
+const PORT = 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

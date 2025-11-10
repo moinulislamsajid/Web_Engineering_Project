@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile - Fully Centered</title>
+  <style>
+    /* Full Page Center */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 40px;
+    }
+
+    /* Main Container - Center Everything */
+    .container {
+      width: 100%;
+      max-width: 500px;
+      padding: 0 20px;
+    }
+
+    /* Header - Centered */
+    .profile-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .profile-image {
+
+      margin-right: auto;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .profile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .placeholder-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #777;
+    }
+
+    /* Address - Centered */
+    .address-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #d8ced2;
+      padding: 8px 14px;
+      border-radius: 8px;
+      min-width: 200px;
+    }
+
+    .address-text {
+      font-weight: 600;
+      font-size: 16px;
+      color: #2c3e50;
+    }
+
+    .edit-btn {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .edit-btn:hover { background: #5a4fcf; }
+
+    /* Address Form - Centered */
+    .address-form {
+      display: none;
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 10px auto 0;
+      max-width: 400px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3436;
+      margin-bottom: 6px;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-save { background: #00b894; color: white; }
+    .btn-cancel { background: #dfe6e9; color: #2d3436; }
+
+    /* Status List - Centered */
+    .status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .status-item {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+
+    .status-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .status-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d3436;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .product-info {
+      font-size: 15px;
+      color: #2d3436;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #636e72;
+    }
+
+    .info-value {
+      font-weight: 500;
+    }
+
+    .review-text {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-style: italic;
+      color: #2d3436;
+    }
+
+    /* Edit Form - Centered */
+    .edit-form {
+      display: none;
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 15px auto 0;
+      max-width: 400px;
+    }
+
+    #imageInput { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Main Centered Container -->
+  <div class="container">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <label for="imageInput" class="profile-image">
+        <div class="placeholder-text" id="placeholder">IMAGE</div>
+        <img id="preview" alt="Profile" />
+      </label>
+
+      <div id="addressDisplay" class="address-display">
+        <span class="address-text" id="addressBox">ADDRESS NUMBER</span>
+        <button class="edit-btn" id="editAddressBtn">Edit</button>
+      </div>
+    </div>
+
+    <!-- Address Edit Form -->
+    <div id="addressForm" class="address-form">
+      <div class="form-group">
+        <label>Home Number</label>
+        <input type="text" id="homeNumber" placeholder="e.g. 12A" />
+      </div>
+      <div class="form-group">
+        <label>Holding Number</label>
+        <input type="text" id="holdingNumber" placeholder="e.g. B-45" />
+      </div>
+      <div class="form-group">
+        <label>Road Number</label>
+        <input type="text" id="roadNumber" placeholder="e.g. Road 5" />
+      </div>
+      <div class="form-group">
+        <label>Division</label>
+        <input type="text" id="division" placeholder="e.g. Dhaka" />
+      </div>
+      <div class="form-group">
+        <label>District</label>
+        <input type="text" id="district" placeholder="e.g. Dhaka" />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-save" id="saveAddress">Save</button>
+        <button class="btn btn-cancel" id="cancelEdit">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Status List -->
+    <div class="status-list">
+
+      <!-- Product Delivered -->
+      <div class="status-item">
+        <div class="status-title">
+          Product Delivered
+          <button class="edit-btn" id="editDeliveredBtn" style="font-size:12px;padding:4px 8px;">Edit</button>
+        </div>
+        <div class="product-info" id="deliveredInfo">
+          <div class="info-row"><span class="info-label">Name</span><span class="info-value">—</span></div>
+          <div class="info-row"><span class="info-label">Qty</span><span class="info-value">—</span></div>
+          <div class="info-row"><span class="info-label">Price</span><span class="info-value">—</span></div>
+        </div>
+      </div>
+
+      <!-- Product Ordered -->
+      <div class="status-item">
+        <div class="status-title">
+          Product Ordered
+          <button class="edit-btn" id="editOrderedBtn" style="font-size:12px;padding:4px 8px;">Edit</button>
+        </div>
+        <div class="product-info" id="orderedInfo">
+          <div class="info-row"><span class="info-label">Name</span><span class="info-value">—</span></div>
+          <div class="info-row"><span class="info-label">Qty</span><span class="info-value">—</span></div>
+          <div class="info-row"><span class="info-label">Price</span><span class="info-value">—</span></div>
+        </div>
+      </div>
+
+      <!-- Product Review -->
+      <div class="status-item">
+        <div class="status-title">
+          Product Review
+          <button class="edit-btn" id="editReviewBtn" style="font-size:12px;padding:4px 8px;">Edit</button>
+        </div>
+        <div id="reviewInfo">
+          <div class="info-row"><span class="info-label">Name</span><span class="info-value">—</span></div>
+          <div class="review-text" id="reviewText">No review yet.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Edit Form (Shared) -->
+    <div id="editForm" class="edit-form">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="editProductName" placeholder="e.g. T-Shirt" />
+      </div>
+      <div class="form-group" id="qtyField">
+        <label>Quantity</label>
+        <input type="number" id="editProductQty" placeholder="e.g. 2" min="1" />
+      </div>
+      <div class="form-group" id="priceField">
+        <label>Price (BDT)</label>
+        <input type="number" id="editProductPrice" placeholder="e.g. 1200" min="0" step="0.01" />
+      </div>
+      <div class="form-group" id="reviewField" style="display:none;">
+        <label>Review</label>
+        <textarea id="editReviewText" placeholder="Write your review..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-save" id="saveEdit">Save</button>
+        <button class="btn btn-cancel" id="cancelEditForm">Cancel</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hidden File Input -->
+  <input type="file" id="imageInput" accept="image/*" />
+
+  <script>
+    // Elements
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const placeholder = document.getElementById('placeholder');
+    const addressBox = document.getElementById('addressBox');
+    const addressDisplay = document.getElementById('addressDisplay');
+    const addressForm = document.getElementById('addressForm');
+
+    // Product Info
+    const deliveredInfo = document.getElementById('deliveredInfo');
+    const orderedInfo = document.getElementById('orderedInfo');
+    const reviewInfo = document.getElementById('reviewInfo');
+    const reviewText = document.getElementById('reviewText');
+
+    // Edit Form
+    const editForm = document.getElementById('editForm');
+    const qtyField = document.getElementById('qtyField');
+    const priceField = document.getElementById('priceField');
+    const reviewField = document.getElementById('reviewField');
+
+    let currentEditTarget = null;
+
+    // Random Products + Reviews
+    const products = [
+      { name: "Premium T-Shirt", qty: 2, price: 1200, review: "Great quality! Fast delivery." },
+      { name: "Wireless Earbuds", qty: 1, price: 3500, review: "Sound is amazing!" },
+      { name: "Leather Wallet", qty: 1, price: 1800, review: "Looks premium." },
+      { name: "Smart Watch", qty: 1, price: 8500, review: "Battery lasts long!" },
+      { name: "Coffee Mug", qty: 3, price: 450, review: "Perfect for daily use." }
+    ];
+
+    let currentProduct = null;
+
+    function updateProductDisplay() {
+      const { name, qty, price, review } = currentProduct;
+      const priceStr = `৳${price.toLocaleString()}`;
+
+      [deliveredInfo, orderedInfo].forEach(info => {
+        info.innerHTML = `
+          <div class="info-row"><span class="info-label">Name</span><span class="info-value">${name}</span></div>
+          <div class="info-row"><span class="info-label">Qty</span><span class="info-value">${qty}</span></div>
+          <div class="info-row"><span class="info-label">Price</span><span class="info-value">${priceStr}</span></div>
+        `;
+      });
+
+      reviewInfo.innerHTML = `
+        <div class="info-row"><span class="info-label">Name</span><span class="info-value">${name}</span></div>
+        <div class="review-text">${review || "No review yet."}</div>
+      `;
+    }
+
+    window.addEventListener('load', () => {
+      currentProduct = products[Math.floor(Math.random() * products.length)];
+      updateProductDisplay();
+      localStorage.setItem('userProduct', JSON.stringify(currentProduct));
+    });
+
+    const saved = localStorage.getItem('userProduct');
+    if (saved) {
+      currentProduct = JSON.parse(saved);
+      updateProductDisplay();
+    }
+
+    // Image Upload
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          preview.src = ev.target.result;
+          preview.style.display = 'block';
+          placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Address Edit
+    document.getElementById('editAddressBtn').addEventListener('click', () => {
+      addressDisplay.style.display = 'none';
+      addressForm.style.display = 'block';
+    });
+
+    document.getElementById('cancelEdit').addEventListener('click', () => {
+      addressForm.style.display = 'none';
+      addressDisplay.style.display = 'flex';
+      addressForm.reset();
+    });
+
+    document.getElementById('saveAddress').addEventListener('click', () => {
+      const parts = [
+        document.getElementById('homeNumber').value.trim(),
+        document.getElementById('holdingNumber').value.trim(),
+        document.getElementById('roadNumber').value.trim(),
+        document.getElementById('division').value.trim(),
+        document.getElementById('district').value.trim()
+      ].filter(Boolean);
+
+      addressBox.textContent = parts.length ? parts.join(', ') : 'ADDRESS NUMBER';
+      addressForm.style.display = 'none';
+      addressDisplay.style.display = 'flex';
+      addressForm.reset();
+    });
+
+    // Edit Buttons
+    document.getElementById('editDeliveredBtn').addEventListener('click', () => openEditForm('delivered'));
+    document.getElementById('editOrderedBtn').addEventListener('click', () => openEditForm('ordered'));
+    document.getElementById('editReviewBtn').addEventListener('click', () => openEditForm('review'));
+
+    function openEditForm(type) {
+      currentEditTarget = type;
+      document.getElementById('editProductName').value = currentProduct.name;
+
+      if (type === 'review') {
+        qtyField.style.display = 'none';
+        priceField.style.display = 'none';
+        reviewField.style.display = 'block';
+        document.getElementById('editReviewText').value = currentProduct.review || '';
+      } else {
+        qtyField.style.display = 'block';
+        priceField.style.display = 'block';
+        reviewField.style.display = 'none';
+        document.getElementById('editProductQty').value = currentProduct.qty;
+        document.getElementById('editProductPrice').value = currentProduct.price;
+      }
+
+      document.querySelector('.status-list').style.display = 'none';
+      editForm.style.display = 'block';
+    }
+
+    document.getElementById('cancelEditForm').addEventListener('click', () => {
+      editForm.style.display = 'none';
+      document.querySelector('.status-list').style.display = 'flex';
+    });
+
+    document.getElementById('saveEdit').addEventListener('click', () => {
+      const name = document.getElementById('editProductName').value.trim();
+
+      if (currentEditTarget === 'review') {
+        const review = document.getElementById('editReviewText').value.trim();
+        currentProduct.review = review || "No review yet.";
+      } else {
+        const qty = parseInt(document.getElementById('editProductQty').value);
+        const price = parseFloat(document.getElementById('editProductPrice').value);
+        if (name && qty > 0 && price >= 0) {
+          currentProduct.name = name;
+          currentProduct.qty = qty;
+          currentProduct.price = price;
+        }
+      }
+
+      if (name) currentProduct.name = name;
+
+      updateProductDisplay();
+      localStorage.setItem('userProduct', JSON.stringify(currentProduct));
+
+      editForm.style.display = 'none';
+      document.querySelector('.status-list').style.display = 'flex';
+    });
+  </script>
+
+</body>
+</html>
